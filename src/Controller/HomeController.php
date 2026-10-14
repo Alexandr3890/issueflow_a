@@ -66,8 +66,16 @@ $html = <<<HTML
 
         return new Response ($html, 200);
 }
+/* Agregamos una nueva ruta, para el URL /health*/
 
-
-
+#[Route('/health', name: 'app_health', methods: ['GET'])]
+public function health(): Response
+{
+    return new Response(
+        'IssueFlow OK',
+        Response::HTTP_OK,
+        ['Content-Type' => 'text/plain']
+    );
+}
 }
 
