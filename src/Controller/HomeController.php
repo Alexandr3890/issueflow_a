@@ -15,30 +15,13 @@ final class HomeController extends AbstractController
     {
         return $this->render('home/index.html.twig', [
             'projectName' => 'IssueFlow',
-            'message' => 'Symfony ha recibido la peticion y ha devuelto una respuesta',
+            'message' => 'Symfony ha recibido la petición y ha devuelto una respuesta',
         ]);
     }
 
     #[Route('/health', name: 'app_health', methods: ['GET'])]
     public function health(): Response
     {
-        $html = '
-            <!DOCTYPE html>
-            <html lang="es">
-            <head>
-                <meta charset="UTF-8">
-                <title>Saludo</title>
-            </head>
-            <body>
-                <h1>IssueFlow OK</h1>
-            </body>
-            </html>
-        ';
-
-        return new Response(
-            $html,
-            Response::HTTP_OK,
-            ['Content-Type' => 'text/html']
-        );
+        return new Response('IssueFlow OK', Response::HTTP_OK);
     }
 }
