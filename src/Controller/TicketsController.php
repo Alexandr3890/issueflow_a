@@ -29,12 +29,19 @@ final class TicketsController extends AbstractController
             'priority' => 'normal',
             'status' => 'closed',
         ],
+        [
+            'id' => 104,
+            'title' => 'Prueba Factura',
+            'priority' => 'normal',
+            'status' => 'closed',
+        ]
     ];
 
     #[Route('/tickets', name: 'app_ticket_index', methods: ['GET'])]
     public function index(): Response
     {
-        return $this->render('tickets/index.html.twig', [
+        return $this->render('ticket/index.html.twig', [
+            'title' => 'Tickets',
             'tickets' => self::TICKETS,
         ]);
     }
