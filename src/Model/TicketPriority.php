@@ -20,5 +20,19 @@ namespace App\Model;
  case Normal = 'normal';
  case Low = 'low';
 
+ /* un enum tambien puede tener metodos.
+ implementamos ell metodo getLabel{} para asignar el texto que se quiere mostar al usuario
+ */
+public function getLabel(): string
+{
+
+return match ($this) {
+self::Urgent => 'Urgente',
+self::High => 'Alta',
+self::Normal => 'Normal',
+self::Low => 'Baja'
+};
+
+}
 
  }
