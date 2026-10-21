@@ -21,10 +21,30 @@ final class Ticket
         private TicketPriority $priority,
         private TicketStatus $status
     ) {
+        /*
+        Validar el formato del ID: INC- seguido de cuatro dígitos.
+
+        Ejemplo válido: INC-1001
+        */
+        if (preg_match('/^INC-\d{4}$/', $this->id) !== 1) {
+            throw new InvalidArgumentException(
+                'El id no tiene un formato válido'
+            );
+        }
+
+        /*
+        Eliminamos los espacios que pueda haber
+        al principio y al final del título.
+        */
         $normalizedTitle = trim($this->title);
 
+        /*
+        El título no puede estar vacío.
+        */
         if ($normalizedTitle === '') {
-            throw new InvalidArgumentException('El título no puede estar vacío');
+            throw new InvalidArgumentException(
+                'El título no puede estar vacío'
+            );
         }
 
         $this->title = $normalizedTitle;
@@ -88,7 +108,7 @@ final class Ticket
             ),
 
             new Ticket(
-                id: 'Inc-1005',
+                id: 'INC-1005',
                 title: 'Probando',
                 priority: TicketPriority::Normal,
                 status: TicketStatus::InProgress
