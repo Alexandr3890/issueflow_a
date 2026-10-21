@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Model;
 
+use InvalidArgumentException;
+
 /*
 Ticket representa una incidencia en IssueFlow como
 un objeto PHP
@@ -18,8 +20,15 @@ final class Ticket
         private string $title,
         private TicketPriority $priority,
         private TicketStatus $status
-    )
-    {}
+    ) {
+        $normalizedTitle = trim($this->title);
+
+        if ($normalizedTitle === '') {
+            throw new InvalidArgumentException('El título no puede estar vacío');
+        }
+
+        $this->title = $normalizedTitle;
+    }
 
     /* Creamos los getters para cada uno de los atributos */
     public function getId(): string
@@ -42,8 +51,9 @@ final class Ticket
         return $this->status;
     }
 
-    /* Mock data de tickets: Data simulada de prueba. La data real
-    se obtendrá luego de una petición a la base de datos.
+    /*
+    Mock data de tickets: Data simulada de prueba.
+    La data real se obtendrá luego de una petición a la base de datos.
     La data se generará con un método estático que devuelva un array de tickets.
     */
     public static function getAllTickets(): array
