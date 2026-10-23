@@ -23,7 +23,10 @@
         <p>Prioridad: <strong>{{ ticket.priority.label }}</strong></p>
 
         <p>Estado: <strong>{{ ticket.status.label }}</strong></p>
-
-    </div>
-
-{% endblock %}
+{# Agregamos el mensaje "Requiere atencion inmediata" solo si el
+     ticket tiene una prioridad Urgente::Urgent
+      #}
+     {% if ticket.urgent %}
+     <p class="ticket-urgent">Requiere atencion inmediata </p>
+     {% endif %}
+    {% endblock %}

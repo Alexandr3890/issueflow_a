@@ -7,7 +7,7 @@ namespace App\Model;
 use InvalidArgumentException;
 
 /*
-Ticket representa una incidencia en IssueFlow como
+Ticket representa una incidencia en IssueFloew como
 un objeto PHP
 */
 final class Ticket
@@ -20,31 +20,25 @@ final class Ticket
         private string $title,
         private TicketPriority $priority,
         private TicketStatus $status
-    ) {
-        /*
-        Validar el formato del ID: INC- seguido de cuatro dígitos.
-
-        Ejemplo válido: INC-1001
+    )
+    {
+        /*  Validar el formato de id: INC- seguido de cuatro dígitos
+            Para ello usamos una regex: regular expression (expresión regular): '/^INC-\d{4}$/'
+            La función preg_match() compara una cadena de texto con la regex y devuelve 1
+            si la cadena de texto es válida
         */
-        if (preg_match('/^INC-\d{4}$/', $this->id) !== 1) {
-            throw new InvalidArgumentException(
-                'El id no tiene un formato válido'
-            );
+        if(preg_match('/^INC-\d{4}$/', $this->id) !== 1) {
+            throw new InvalidArgumentException('El id no tiene un formato válido');
         }
 
-        /*
-        Eliminamos los espacios que pueda haber
-        al principio y al final del título.
+        /* Normalización de title: Eliminar espacios en blanco antes y después 
+        La función trim() elimina estos espacios
         */
-        $normalizedTitle = trim($this->title);
+        $normalizedTitle = trim($title);
 
-        /*
-        El título no puede estar vacío.
-        */
+        /* Verifico que $normalizedTitle no sea una cadena de texto vacía */
         if ($normalizedTitle === '') {
-            throw new InvalidArgumentException(
-                'El título no puede estar vacío'
-            );
+            throw new InvalidArgumentException('El título no puede estar vacío');
         }
 
         $this->title = $normalizedTitle;
@@ -71,69 +65,16 @@ final class Ticket
         return $this->status;
     }
 
-    /*
-    Mock data de tickets: Data simulada de prueba.
-    La data real se obtendrá luego de una petición a la base de datos.
-    La data se generará con un método estático que devuelva un array de tickets.
-    */
-    public static function getAllTickets(): array
+    /* Método que devuelve true si el ticket tiene una
+    prioridad 'urgent', y false en caso contrario */
+    public function isUrgent(): bool
     {
-        return [
-            new Ticket(
-                id: 'INC-1001',
-                title: 'No puedo acceder',
-                priority: TicketPriority::Urgent,
-                status: TicketStatus::Open
-            ),
-
-            new Ticket(
-                id: 'INC-1002',
-                title: 'Error en factura',
-                priority: TicketPriority::High,
-                status: TicketStatus::AlmostDone
-            ),
-
-            new Ticket(
-                id: 'INC-1003',
-                title: 'Actualizar datos',
-                priority: TicketPriority::Normal,
-                status: TicketStatus::AlmostDone
-            ),
-
-            new Ticket(
-                id: 'INC-1004',
-                title: 'El ordenador está en llamas',
-                priority: TicketPriority::Low,
-                status: TicketStatus::InProgress
-            ),
-
-            new Ticket(
-                id: 'INC-1005',
-                title: 'Probando',
-                priority: TicketPriority::Normal,
-                status: TicketStatus::InProgress
-            )
-        ];
+        return $this->priority->isUrgent();
     }
 
-    /*
-    Método find que encuentra un ticket en el listado, dado su id.
-
-    ?Ticket quiere decir que el método puede devolver
-    un Ticket o null.
-    */
-    public static function find(string $id): ?Ticket
+    /* Método que devuelve true si una incidencia está cerrada */
+    public function isClosed(): bool
     {
-        /*
-        array_find(), disponible en PHP 8.4+, devuelve el primer elemento
-        del array que cumple con la condición indicada por la función callback.
-
-        Si no encuentra ningún elemento que cumpla la condición,
-        devuelve null.
-        */
-        return array_find(
-            Ticket::getAllTickets(),
-            fn (Ticket $ticket): bool => $ticket->getId() === $id
-        );
+        return $this->status->isClosed();
     }
 }

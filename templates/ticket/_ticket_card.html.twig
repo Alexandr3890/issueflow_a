@@ -1,9 +1,3 @@
-{# 
-  Fragmento reutilizable para representar una incidencia dentro de un listado.
-  el guion bajo inicial es una convención habitual para indicar que este 
-  archivo es un partial y no una página completa.
-#}
-
 <article class="ticket-card">
 
     <div>
@@ -15,6 +9,14 @@
         <p>Prioridad: <strong>{{ ticket.priority.label }}</strong></p>
 
         <p>Estado: <strong>{{ ticket.status.label }}</strong></p>
+
+        {% if ticket.urgent %}
+            <p class="ticket-urgent">Requiere atención inmediata</p>
+        {% endif %}
+
+        {% if ticket.closed %}
+            <p class="ticket-closed">Incidencia cerrada</p>
+        {% endif %}
 
         <a href="{{ path('app_ticket_show', {id: ticket.id}) }}">
             Ver detalle
