@@ -5,15 +5,10 @@
 {% block body %}
 
     <div class="page-header">
-
         <div>
-
             <p class="eyebrow">IssueFlow</p>
-
             <h1>{{ ticket.title }}</h1>
-
         </div>
-
     </div>
 
     <div class="ticket-card">
@@ -23,10 +18,17 @@
         <p>Prioridad: <strong>{{ ticket.priority.label }}</strong></p>
 
         <p>Estado: <strong>{{ ticket.status.label }}</strong></p>
-{# Agregamos el mensaje "Requiere atencion inmediata" solo si el
-     ticket tiene una prioridad Urgente::Urgent
-      #}
-     {% if ticket.urgent %}
-     <p class="ticket-urgent">Requiere atencion inmediata </p>
-     {% endif %}
-    {% endblock %}
+
+        <p>Objetivo de respuesta: <strong>{{ responseTargetHours }} horas</strong></p>
+
+        {% if ticket.urgent %}
+            <p class="ticket-urgent">Requiere atención inmediata</p>
+        {% endif %}
+
+        {% if ticket.closed %}
+            <p class="ticket-closed">Incidencia cerrada</p>
+        {% endif %}
+
+    </div>
+
+{% endblock %}
