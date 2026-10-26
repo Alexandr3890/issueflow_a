@@ -6,21 +6,19 @@ namespace App\Controller;
 
 use App\Contract\TicketCatalogInterface;
 use App\Contract\TicketSlaCalculatorInterface;
-use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\HttpFoundation\Response;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
 
 final class TicketController extends AbstractController
 {
-    /* Constructor de TicketController
-    Cuando Symfony levanta la aplicación, crea una instancia del controlador.
-    Inyecto las interfaces de TicketCatalog y TicketSlaCalculator.
-    */
     public function __construct(
         private readonly TicketCatalogInterface $ticketCatalog,
-        private readonly TicketSlaCalculatorInterface $slaCalculator
-    )
-    {}
+        private readonly TicketSlaCalculatorInterface $slaCalculator,
+        private readonly LoggerInterface $logger
+    ) {
+    }
 
     #[Route('/tickets', name: 'app_ticket_index', methods: ['GET'])]
     public function index(): Response
@@ -36,14 +34,24 @@ final class TicketController extends AbstractController
     {
         $ticket = $this->ticketCatalog->find($id);
 
-        if ($ticket === NULL) {
+        if ($ticket === null) {
+            /*
+            Guardo la información en el log para investigaciones posteriores
+            */
+            $this->logger->warning(
+                'Se solicitó una incidencia no existente',
+                [
+                    'ticket_id' => $id,
+                    'route' => 'app_ticket_show',
+                ]
+            );
+
             throw $this->createNotFoundException('No existe la incidencia');
         }
 
-       return $this->render('ticket/show.html.twig', [
-    'ticket' => $ticket,
-    'responseTargetHours' => $this->slaCalculator->getResponseTargetHours($ticket)
-]);
-
+        return $this->render('ticket/show.html.twig', [
+            'ticket' => $ticket,
+            'responseTargetHours' => $this->slaCalculator->getResponseTargetHours($ticket)
+        ]);
     }
 }
