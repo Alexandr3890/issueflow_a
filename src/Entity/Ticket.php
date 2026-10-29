@@ -6,6 +6,7 @@ namespace App\Entity;
 
 use App\Model\TicketPriority;
 use App\Model\TicketStatus;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
@@ -13,7 +14,7 @@ class Ticket
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(type: Types::BIGINT, options: ['unsigned' => true])]
     private ?int $id = null;
 
     #[ORM\Column(length: 20, unique: true)]
@@ -37,9 +38,16 @@ class Ticket
     #[ORM\ManyToOne(inversedBy: 'tickets')]
     private ?Category $category = null;
 
-    public function getId(): ?int
-    {
-        return $this->id;
+    public function __construct(
+        string $code,
+        string $title,
+        TicketPriority $priority,
+        TicketStatus $status,
+    ) {
+        $this->code = $code;
+        $this->title = $title;
+        $this->priority = $priority;
+        $this->status = $status;
     }
 
     public function getCode(): ?string
@@ -124,5 +132,15 @@ class Ticket
         $this->category = $category;
 
         return $this;
+    }
+
+    public function isUrgent(): bool
+    {
+        return $this->priority === TicketPriority::Urgent;
+    }
+
+    public function isClosed(): bool
+    {
+        return $this->status === TicketStatus::Closed;
     }
 }

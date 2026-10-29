@@ -2,7 +2,7 @@
 
     <div>
 
-        <p class="ticket-id">{{ ticket.id }}</p>
+        <p class="ticket-code">{{ ticket.code }}</p>
 
         <h2>{{ ticket.title }}</h2>
 
@@ -18,7 +18,7 @@
             <p class="ticket-closed">Incidencia cerrada</p>
         {% endif %}
 
-        <a href="{{ path('app_ticket_show', {id: ticket.id}) }}">
+        <a href="{{ path('app_ticket_show', {code: ticket.code}) }}">
             Ver detalle
         </a>
 

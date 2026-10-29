@@ -29,10 +29,10 @@ final class TicketController extends AbstractController
         ]);
     }
 
-    #[Route('/tickets/{id}', name: 'app_ticket_show', methods: ['GET'])]
-    public function show(string $id): Response
+    #[Route('/tickets/{code}', name: 'app_ticket_show', methods: ['GET'])]
+    public function show(string $code): Response
     {
-        $ticket = $this->ticketCatalog->find($id);
+        $ticket = $this->ticketCatalog->findByCode($code);
 
         if ($ticket === null) {
             /*
@@ -41,7 +41,7 @@ final class TicketController extends AbstractController
             $this->logger->warning(
                 'Se solicitó una incidencia no existente',
                 [
-                    'ticket_id' => $id,
+                    'ticket_code' => $code,
                     'route' => 'app_ticket_show',
                 ]
             );

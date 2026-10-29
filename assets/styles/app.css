@@ -51,7 +51,7 @@ main { padding-block: 2.5rem; }
 
 .page-header { display: flex; justify-content: space-between; align-items: end; gap: 1rem; margin-bottom: 1rem; }
 
-.eyebrow, .ticket-id { color: #64748b; font-size: .85rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+.eyebrow, .ticket-code { color: #64748b; font-size: .85rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
 
 .ticket-list { display: grid; gap: .85rem; }
 
