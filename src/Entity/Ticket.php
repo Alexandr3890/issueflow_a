@@ -6,141 +6,151 @@ namespace App\Entity;
 
 use App\Model\TicketPriority;
 use App\Model\TicketStatus;
+use App\Repository\TicketRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use InvalidArgumentException;
 
-#[ORM\Entity]
-class Ticket
+/**
+ * Entity Doctrine de una incidencia de IssueFlow
+ * Sigue siendo un objeto PHP pero le añadiremos
+ * el mapeo necesario para que Doctrine sepa como
+ * persistirlo en la base de datos
+ */
+#[ORM\Entity(repositoryClass: TicketRepository::class)] // Decimos que la clase es también una entidad Doctrine y que usa TicketRepository
+#[ORM\Table(name: 'tickets')] // Asignamos la tabla correspondiente en la Base de datos
+final class Ticket
 {
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(type: Types::BIGINT, options: ['unsigned' => true])]
+    /**
+     * Identificador técnico (id) de base de datos.
+     * Comienza con un valor null porque una entidad recién
+     * creada aún no ha sido insertada.
+     * El valor de id será asignado al momento de persistirla
+     */
+    #[ORM\Id] // Indica que corresponde a la clave primaria (PK: Primary key)
+    #[ORM\GeneratedValue] // Indica que es un valor autogenerado
+    #[ORM\Column(type: Types::BIGINT, options: ['unsigned' => true])] // Si no especifico nombre de la columna, esta toma el nombre del atributo
     private ?int $id = null;
 
-    #[ORM\Column(length: 20, unique: true)]
-    private ?string $code = null;
+    /**
+     * Para establecer la relación es obligatorio el mapeo en este lado, el lado del ManyToOne
+     * Esta es una relación unidireccional. Ticket es el lado propietario de la relación
+     * porque la FK assignee_id vive en la tabla de tickets.
+     */
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?User $assignee = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $title = null;
-
-    #[ORM\Column(enumType: TicketPriority::class)]
-    private ?TicketPriority $priority = null;
-
-    #[ORM\Column(enumType: TicketStatus::class)]
-    private ?TicketStatus $status = null;
-
-    #[ORM\Column]
-    private ?\DateTimeImmutable $createdAt = null;
-
+    /**
+     * Para establecer la relación es obligatorio el mapeo en este lado, el lado del ManyToOne
+     * Esta es una relación bidireccional. Ticket es el lado propietario de la relación
+     * porque la FK category_id vive en la tabla de tickets.
+     * Category::$tickets es el lado inverso y usa mappedBy="category".
+     */
     #[ORM\ManyToOne(inversedBy: 'tickets')]
-    private ?User $user = null;
-
-    #[ORM\ManyToOne(inversedBy: 'tickets')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Category $category = null;
 
+    /*
+    Constructor Property Promotion (PHP moderno)
+    */
     public function __construct(
-        string $code,
-        string $title,
-        TicketPriority $priority,
-        TicketStatus $status,
-    ) {
-        $this->code = $code;
-        $this->title = $title;
-        $this->priority = $priority;
-        $this->status = $status;
+        #[ORM\Column(length: 8, unique: true)]
+        private readonly string $code, // readonly: solo lectura, una vez creado no puedo cambiar el valor de code
+
+        #[ORM\Column(length: 180)]
+        private string $title,
+
+        #[ORM\Column(length: 20, enumType: TicketPriority::class)]
+        private TicketPriority $priority,
+        
+        #[ORM\Column(length: 20, enumType: TicketStatus::class)]
+        private TicketStatus $status
+    )
+    {
+        /*  Validar el formato de code: INC- seguido de cuatro dígitos
+            Para ello usamos una regex: regular expression (expresión regular): '/^INC-\d{4}$/'
+            La función preg_match() compara una cadena de texto con la regex y devuelve 1
+            si la cadena de texto es válida
+        */
+        if(preg_match('/^INC-\d{4}$/', $this->code) !== 1) {
+            throw new InvalidArgumentException('El código no tiene un formato válido');
+        }
+
+        /* Normalización de title: Eliminar espacios en blanco antes y después 
+        La función trim() elimina estos espacios
+        */
+        $normalizedTitle = trim($title);
+
+        /* Verifico que $normalizedTitle no sea una cadena de texto vacía */
+        if ($normalizedTitle === '') {
+            throw new InvalidArgumentException('El título no puede estar vacío');
+        }
+
+        $this->title = $normalizedTitle;
     }
 
-    public function getCode(): ?string
+    /* Creamos los getters para cada uno de los atributos */
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getCode(): string
     {
         return $this->code;
     }
 
-    public function setCode(string $code): static
-    {
-        $this->code = $code;
-
-        return $this;
-    }
-
-    public function getTitle(): ?string
+    public function getTitle(): string
     {
         return $this->title;
     }
 
-    public function setTitle(string $title): static
-    {
-        $this->title = $title;
-
-        return $this;
-    }
-
-    public function getPriority(): ?TicketPriority
+    public function getPriority(): TicketPriority
     {
         return $this->priority;
     }
 
-    public function setPriority(TicketPriority $priority): static
-    {
-        $this->priority = $priority;
-
-        return $this;
-    }
-
-    public function getStatus(): ?TicketStatus
+    public function getStatus(): TicketStatus
     {
         return $this->status;
     }
 
-    public function setStatus(TicketStatus $status): static
+    // Desde Ticket puedo ver su assignee
+    public function getAssignee(): ?User
     {
-        $this->status = $status;
-
-        return $this;
+        return $this->assignee;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
-
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-
-        return $this;
-    }
-
-    public function getUser(): ?User
-    {
-        return $this->user;
-    }
-
-    public function setUser(?User $user): static
-    {
-        $this->user = $user;
-
-        return $this;
-    }
-
+    // Desde Ticket puedo ver su category
     public function getCategory(): ?Category
     {
         return $this->category;
     }
 
-    public function setCategory(?Category $category): static
+    // Setters para los atributos de las relaciones
+    // Asignamos un usuario a un ticket
+    public function assignTo(?User $assignee): void
+    {
+        $this->assignee = $assignee;
+    }
+
+    // Asignamos una categoría a un ticket
+    public function setCategory(?Category $category): void
     {
         $this->category = $category;
-
-        return $this;
     }
 
+    /* Método que devuelve true si el ticket tiene una
+    prioridad 'urgent', y false en caso contrario */
     public function isUrgent(): bool
     {
-        return $this->priority === TicketPriority::Urgent;
+        return $this->priority->isUrgent();
     }
 
+    /* Método que devuelve true si una incidencia está cerrada */
     public function isClosed(): bool
     {
-        return $this->status === TicketStatus::Closed;
+        return $this->status->isClosed();
     }
 }

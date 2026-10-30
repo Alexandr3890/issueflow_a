@@ -6,27 +6,33 @@ namespace App\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use InvalidArgumentException;
 
 #[ORM\Entity]
-class Category
+#[ORM\Table(name: 'categories')]
+final class Category
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(type: Types::BIGINT, options: ['unsigned' => true])]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $name = null;
-
-    /**
-     * @var Collection<int, Ticket>
-     */
-    #[ORM\OneToMany(mappedBy: 'category', targetEntity: Ticket::class)]
+    #[ORM\OneToMany(targetEntity: Ticket::class, mappedBy: 'category')]
     private Collection $tickets;
 
-    public function __construct()
-    {
+    public function __construct(
+        #[ORM\Column(length: 120, unique: true)]
+        private string $name,
+    ) {
+        $normalizedName = trim($name);
+
+        if ($normalizedName === '') {
+            throw new InvalidArgumentException('El nombre del usuario no puede estar vacío');
+        }
+
+        $this->name = $normalizedName;
         $this->tickets = new ArrayCollection();
     }
 
@@ -35,44 +41,34 @@ class Category
         return $this->id;
     }
 
-    public function getName(): ?string
+    public function getName(): string
     {
         return $this->name;
     }
 
-    public function setName(string $name): static
-    {
-        $this->name = $name;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Ticket>
-     */
     public function getTickets(): Collection
     {
         return $this->tickets;
     }
 
-    public function addTicket(Ticket $ticket): static
+    public function addTicket(Ticket $ticket): void
     {
-        if (!$this->tickets->contains($ticket)) {
-            $this->tickets->add($ticket);
-            $ticket->setCategory($this);
+        if ($this->tickets->contains($ticket)) {
+            return;
         }
 
-        return $this;
+        $this->tickets->add($ticket);
+        $ticket->setCategory($this);
     }
 
-    public function removeTicket(Ticket $ticket): static
+    public function removeTicket(Ticket $ticket): void
     {
-        if ($this->tickets->removeElement($ticket)) {
-            if ($ticket->getCategory() === $this) {
-                $ticket->setCategory(null);
-            }
+        if (!$this->tickets->removeElement($ticket)) {
+            return;
         }
 
-        return $this;
+        if ($ticket->getCategory() == $this) {
+            $ticket->setCategory(null);
+        }
     }
 }

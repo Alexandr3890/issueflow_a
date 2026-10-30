@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Contract\TicketCatalogInterface;
 use App\Entity\Ticket;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
-final class TicketRepository extends ServiceEntityRepository
+#[AsAlias(TicketCatalogInterface::class)]
+final class TicketRepository extends ServiceEntityRepository implements TicketCatalogInterface
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -20,13 +23,11 @@ final class TicketRepository extends ServiceEntityRepository
      */
     public function getTickets(): array
     {
-        // TODO: Implementar la consulta a la base de datos.
-        return [];
+        return $this->findBy([], ['id' => 'ASC']);
     }
 
     public function findByCode(string $code): ?Ticket
     {
-        // TODO: Implementar la consulta a la base de datos.
-        return null;
+        return $this->findOneBy(['code' => $code]);
     }
 }

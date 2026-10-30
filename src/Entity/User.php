@@ -4,36 +4,54 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use InvalidArgumentException;
 
+/**
+ * Usuario mínimo de IssueFlow para asignar tickets
+ */
 #[ORM\Entity]
-class User
+#[ORM\Table(name: 'users')]
+final class User
 {
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
+    /**
+     * Identificador técnico (id) de base de datos.
+     * Comienza con un valor null porque una entidad recién
+     * creada aún no ha sido insertada.
+     * El valor de id será asignado al momento de persistirla
+     */
+    #[ORM\Id] // Indica que corresponde a la clave primaria (PK: Primary key)
+    #[ORM\GeneratedValue] // Indica que es un valor autogenerado
+    #[ORM\Column(type: Types::BIGINT, options: ['unsigned' => true])] // Si no especifico nombre de la columna, esta toma el nombre del atributo
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $name = null;
+    public function __construct(
+        #[ORM\Column(length: 120)]
+        private string $name,
 
-    #[ORM\Column(length: 255, unique: true)]
-    private ?string $email = null;
-
-    #[ORM\Column]
-    private ?\DateTimeImmutable $createdAt = null;
-
-    /**
-     * @var Collection<int, Ticket>
-     */
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Ticket::class)]
-    private Collection $tickets;
-
-    public function __construct()
+        #[ORM\Column(length: 180, unique: true)]
+        private string $email,
+    )
     {
-        $this->tickets = new ArrayCollection();
+        // Normalizo el nombre quitando los espacios en blanco al principio y al final
+        $normalizedName = trim($name);
+
+        // Normalizo el email quitando los espacios en blanco al principio y al final y poniendo todo en minúscula
+        $normalizedEmail = strtolower(trim($email));
+
+        // Si el nombre normalizado está vacío lanzo un error
+        if ($normalizedName === '') {
+            throw new InvalidArgumentException('El nombre del usuario no puede estar vacío');
+        }
+
+        // Si el email normalizado no tiene un formato válido lanzo un error
+        if (filter_var($normalizedEmail, FILTER_VALIDATE_EMAIL) === false) {
+            throw new InvalidArgumentException('El email no es válido');
+        }
+
+        $this->name = $normalizedName;
+        $this->email = $normalizedEmail;
     }
 
     public function getId(): ?int
@@ -41,68 +59,13 @@ class User
         return $this->id;
     }
 
-    public function getName(): ?string
+    public function getName(): string
     {
         return $this->name;
     }
 
-    public function setName(string $name): static
-    {
-        $this->name = $name;
-
-        return $this;
-    }
-
-    public function getEmail(): ?string
+    public function getEmail(): string
     {
         return $this->email;
-    }
-
-    public function setEmail(string $email): static
-    {
-        $this->email = $email;
-
-        return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
-
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Ticket>
-     */
-    public function getTickets(): Collection
-    {
-        return $this->tickets;
-    }
-
-    public function addTicket(Ticket $ticket): static
-    {
-        if (!$this->tickets->contains($ticket)) {
-            $this->tickets->add($ticket);
-            $ticket->setUser($this);
-        }
-
-        return $this;
-    }
-
-    public function removeTicket(Ticket $ticket): static
-    {
-        if ($this->tickets->removeElement($ticket)) {
-            if ($ticket->getUser() === $this) {
-                $ticket->setUser(null);
-            }
-        }
-
-        return $this;
     }
 }
