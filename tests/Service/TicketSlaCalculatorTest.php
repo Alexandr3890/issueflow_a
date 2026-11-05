@@ -24,24 +24,21 @@ final class TicketSlaCalculatorTest extends TestCase
 
     #[Test]
     #[DataProvider('priorityProvider')]
-    public function it_returns_the_correct_response_target_hours(
+    public function it_calculates_the_response_target_for_each_priority(
         TicketPriority $priority,
         int $expectedHours
     ): void {
-        // Arrange
-        $calculator = new TicketSlaCalculator();
-
         $ticket = new Ticket(
             code: 'INC-1001',
-            title: 'Incidencia válida',
+            title: 'Incidencia de prueba',
             priority: $priority,
-            status: TicketStatus::Open,
+            status: TicketStatus::Open
         );
 
-        // Act
-        $result = $calculator->getResponseTargetHours($ticket);
+        $calculator = new TicketSlaCalculator();
 
-        // Assert
-        self::assertSame($expectedHours, $result);
+        $actualHours = $calculator->getResponseTargetHours($ticket);
+
+        self::assertSame($expectedHours, $actualHours);
     }
 }

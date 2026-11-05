@@ -1,4 +1,3 @@
-
 {#
     Plantilla base de IssueFlow.
     Las demás vistas pueden heredar esta estructura mediante {% extends %}
@@ -11,7 +10,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
         {# Las vistas hijas pueden reemplazar el título de la página. #}
-        <title>{% block title %}IssueFlow{% endblock %}</title>
+        <title{% block title %}IssueFlow{% endblock %}</title>
 
         {# Bloque reservado para hojas de estilo adicionales #}
         {% block stylesheets %}
@@ -24,7 +23,8 @@
 
         {#
             Symfony 8.1 puede trabajar con FrankenPHP Hot Reload.
-            Este bloque solo se activa si la variable de servidor existe.
+            Este bloque solo se activa si la variable de servidor existe,
+            por lo que no afecta a los alumnos que ejecuten PHP de otra forma.
         #}
         {% set frankenphp_hot_reload = app.request.server.get('FRANKENPHP_HOT_RELOAD') %}
         {% if frankenphp_hot_reload %}
@@ -36,8 +36,10 @@
     <body>
         <header class="site-header">
             <div class="container header-inner">
+                {# path() genera la URL a partir del nombre interno de una ruta Symfony #}
                 <a class="brand" href="{{ path('app_home') }}">IssueFlow</a>
-
+                
+                {# Barra de navegación principal #}
                 <nav>
                     <a href="{{ path('app_home') }}">Inicio</a>
                     <a href="{{ path('app_ticket_index') }}">Incidencias</a>
@@ -45,9 +47,9 @@
                 </nav>
             </div>
         </header>
-
         <main class="site-main">
             <div class="container">
+                {# Aquí las vistas hijas colocan su contenido principal #}
                 {% block body %}{% endblock %}
             </div>
         </main>

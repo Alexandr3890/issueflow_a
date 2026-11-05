@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace App\Model;
 
-/*
- * Prioridades permitidas por IssueFlow.
- *
- * El sistema permite solo cuatro prioridades:
- * 'urgent', 'high', 'normal', 'low'
- */
+/* 
+    Prioridades permitidas por el sistema IssueFlow
 
+    El sistema permita solo cuatro prioridades: 'urgent',
+    'high', 'normal', 'low'
+*/
 enum TicketPriority: string
 {
     case Urgent = 'urgent';
@@ -18,26 +17,22 @@ enum TicketPriority: string
     case Normal = 'normal';
     case Low = 'low';
 
-    /*
-     * Un enum también puede tener métodos.
-     * Implementamos el método getLabel() para asignar
-     * el texto que se quiere mostrar al usuario.
-     */
+    /*  Un enum también puede tener métodos.
+        Implementamos el método getLabel() para
+        asignar especificamente el texto que se quiere mostrar al usuario
+    */
     public function getLabel(): string
     {
         return match ($this) {
             self::Urgent => 'Urgente',
             self::High => 'Alta',
             self::Normal => 'Normal',
-            self::Low => 'Baja',
+            self::Low => 'Baja'
         };
     }
 
-    /*
-     * Método que verifica si la prioridad es urgente.
-     * Se implementa aquí porque este es el responsable
-     * de prioridades de Ticket.
-     */
+    /* Método que verifica si la prioridad es urgente
+    Se implementa acá porque este es el responsable de prioridades de Ticket */
     public function isUrgent(): bool
     {
         return $this === self::Urgent;

@@ -15,6 +15,7 @@ final class InMemoryTicketCatalogTest extends TestCase
     public function it_finds_an_existing_ticket(): void
     {
         $catalog = new InMemoryTicketCatalog();
+
         $ticket = $catalog->findByCode('INC-1001');
 
         self::assertInstanceOf(Ticket::class, $ticket);

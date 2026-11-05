@@ -134,7 +134,6 @@ final class Ticket
     {
         $this->assignee = $assignee;
     }
-
     // Asignamos una categoría a un ticket
     public function setCategory(?Category $category): void
     {

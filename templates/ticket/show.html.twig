@@ -1,34 +1,57 @@
+{#  Esta plantilla hereda de base.html.twig #}
 {% extends "base.html.twig" %}
 
-{% block title %}{{ ticket.title }}{% endblock %}
+{# Usamos el Cide del ticket para construir un título de página específico. #}
+{% block title %}{{ ticket.code }} . Issueflow{% endblock %}
 
 {% block body %}
-
-    <div class="page-header">
-        <div>
-            <p class="eyebrow">IssueFlow</p>
-            <h1>{{ ticket.title }}</h1>
-        </div>
-    </div>
-
-    <div class="ticket-card">
-
-        <p class="ticket-code">{{ ticket.code }}</p>
-
-        <p>Prioridad: <strong>{{ ticket.priority.label }}</strong></p>
-
-        <p>Estado: <strong>{{ ticket.status.label }}</strong></p>
-
-        <p>Objetivo de respuesta: <strong>{{ responseTargetHours }} horas</strong></p>
-
-        {% if ticket.urgent %}
-            <p class="ticket-urgent">Requiere atención inmediata</p>
+    <p>
+        <a href="{{ path('app_ticket_index') }}">Volver a incidencias</a>
+    </p>
+    <p class="ticket-code">{{ ticket.code }}</p>
+    <h1>{{ ticket.title }}</h1>
+    <p>Prioridad: <strong>{{ ticket.priority.label }}</strong></p>
+    <p>Estado: <strong>{{ ticket.status.label }}</strong></p>
+    <p>
+        Categoría:
+        {# 
+            Antes de intentar acceder al name de category, tengo que verificar
+            que category no sea nulo (si no hago esta verificación puede ocurrir un error)
+        #}
+        {% if ticket.category %}
+            {{ ticket.category.name }}
+        {% else %}
+            Sin categoría
         {% endif %}
-
-        {% if ticket.closed %}
-            <p class="ticket-closed">Incidencia cerrada</p>
+    </p>
+    <p>
+        Asignado a:
+        {# 
+            Antes de intentar acceder al name de assignee, tengo que verificar
+            que assignee no sea nulo (si no hago esta verificación puede ocurrir un error)
+        #}
+        {% if ticket.assignee %}
+            {{ ticket.assignee.name }}
+        {% else %}
+            Sin asignar
         {% endif %}
-
-    </div>
-
+    </p>
+    {# Agregar el tiempo de respuesta #}
+    <p>Objetivo de respuesta: <strong>{{ responseTargetHours }} horas</strong></p>
+    {# 
+        Agregamos el mensaje "Requiere atención inmediata" solo
+        si el ticket tiene una prioridad urgente: TicketPriority::Urgent
+        Todo lo que esté entre el {% if condición %} y {% endif %} aparece
+        en el documento html solo si se cumple la condición
+    #}
+    {% if ticket.urgent %}
+        <p class="ticket-urgent">Requiere atención inmediata</p>
+    {% endif %}
+    {# 
+        Agregamos el mensaje "Incidencia cerrada" solo
+        si el ticket tiene un estado 'closed'
+    #}
+    {% if ticket.closed %}
+        <p class="ticket-closed">Incidencia cerrada</p>
+    {% endif %}
 {% endblock %}
