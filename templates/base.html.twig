@@ -1,7 +1,7 @@
+
 {#
     Plantilla base de IssueFlow.
-    Las demás vistas pueden heredar esta estructura mediante {% extends %}
-    y sustituir únicamente los bloques que necesiten.
+    Las demás vistas heredan esta estructura mediante {% extends %}
 #}
 <!DOCTYPE html>
 <html lang="es">
@@ -9,37 +9,28 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        {# Las vistas hijas pueden reemplazar el título de la página. #}
-        <title{% block title %}IssueFlow{% endblock %}</title>
+        <title>{% block title %}IssueFlow{% endblock %}</title>
 
-        {# Bloque reservado para hojas de estilo adicionales #}
         {% block stylesheets %}
         {% endblock %}
 
-        {# Bloque reservado para scripts #}
         {% block javascripts %}
             {% block importmap %}{{ importmap('app') }}{% endblock %}
         {% endblock %}
 
-        {#
-            Symfony 8.1 puede trabajar con FrankenPHP Hot Reload.
-            Este bloque solo se activa si la variable de servidor existe,
-            por lo que no afecta a los alumnos que ejecuten PHP de otra forma.
-        #}
         {% set frankenphp_hot_reload = app.request.server.get('FRANKENPHP_HOT_RELOAD') %}
         {% if frankenphp_hot_reload %}
-        <meta name="frankenphp-hot-reload:url" content="{{ frankenphp_hot_reload }}">
-        <script src="https://cdn.jsdelivr.net/npm/idiomorph"></script>
-        <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
+            <meta name="frankenphp-hot-reload:url" content="{{ frankenphp_hot_reload }}">
+            <script src="https://cdn.jsdelivr.net/npm/idiomorph"></script>
+            <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
         {% endif %}
     </head>
+
     <body>
         <header class="site-header">
             <div class="container header-inner">
-                {# path() genera la URL a partir del nombre interno de una ruta Symfony #}
                 <a class="brand" href="{{ path('app_home') }}">IssueFlow</a>
-                
-                {# Barra de navegación principal #}
+
                 <nav>
                     <a href="{{ path('app_home') }}">Inicio</a>
                     <a href="{{ path('app_ticket_index') }}">Incidencias</a>
@@ -47,10 +38,21 @@
                 </nav>
             </div>
         </header>
+
         <main class="site-main">
             <div class="container">
-                {# Aquí las vistas hijas colocan su contenido principal #}
+
+                {# Mostramos los mensajes flash almacenados en la sesión #}
+                {% for label, messages in app.flashes %}
+                    {% for message in messages %}
+                        <div class="flash flash-{{ label }}" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+
                 {% block body %}{% endblock %}
+
             </div>
         </main>
     </body>
