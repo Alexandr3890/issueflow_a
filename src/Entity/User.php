@@ -7,24 +7,39 @@ namespace App\Entity;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use InvalidArgumentException;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
- * Usuario mínimo de IssueFlow para asignar tickets
+ * Usuario de IssueFlow.
+ *
+ * Permite gestionar los datos personales, la autenticación
+ * y los permisos de cada usuario.
  */
 #[ORM\Entity]
 #[ORM\Table(name: 'users')]
-final class User
+final class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     /**
-     * Identificador técnico (id) de base de datos.
-     * Comienza con un valor null porque una entidad recién
-     * creada aún no ha sido insertada.
-     * El valor de id será asignado al momento de persistirla
+     * Identificador técnico de la base de datos.
      */
-    #[ORM\Id] // Indica que corresponde a la clave primaria (PK: Primary key)
-    #[ORM\GeneratedValue] // Indica que es un valor autogenerado
-    #[ORM\Column(type: Types::BIGINT, options: ['unsigned' => true])] // Si no especifico nombre de la columna, esta toma el nombre del atributo
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: Types::BIGINT, options: ['unsigned' => true])]
     private ?int $id = null;
+
+    /**
+     * Hash de la contraseña.
+     * Nunca almacenamos la contraseña en texto plano.
+     */
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $password = null;
+
+    /**
+     * Roles almacenados en formato JSON.
+     */
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $roles = [];
 
     public function __construct(
         #[ORM\Column(length: 120)]
@@ -32,22 +47,21 @@ final class User
 
         #[ORM\Column(length: 180, unique: true)]
         private string $email,
-    )
-    {
-        // Normalizo el nombre quitando los espacios en blanco al principio y al final
+    ) {
+        // Normalizamos el nombre y el correo electrónico.
         $normalizedName = trim($name);
-
-        // Normalizo el email quitando los espacios en blanco al principio y al final y poniendo todo en minúscula
         $normalizedEmail = strtolower(trim($email));
 
-        // Si el nombre normalizado está vacío lanzo un error
         if ($normalizedName === '') {
-            throw new InvalidArgumentException('El nombre del usuario no puede estar vacío');
+            throw new InvalidArgumentException(
+                'El nombre del usuario no puede estar vacío'
+            );
         }
 
-        // Si el email normalizado no tiene un formato válido lanzo un error
         if (filter_var($normalizedEmail, FILTER_VALIDATE_EMAIL) === false) {
-            throw new InvalidArgumentException('El email no es válido');
+            throw new InvalidArgumentException(
+                'El email no es válido'
+            );
         }
 
         $this->name = $normalizedName;
@@ -67,5 +81,50 @@ final class User
     public function getEmail(): string
     {
         return $this->email;
+    }
+
+    /**
+     * Devuelve el identificador utilizado para iniciar sesión.
+     */
+    public function getUserIdentifier(): string
+    {
+        return $this->email;
+    }
+
+    /**
+     * Devuelve los roles del usuario.
+     * Todos los usuarios tienen ROLE_USER como mínimo.
+     */
+    public function getRoles(): array
+    {
+        $roles = $this->roles ?? [];
+
+        $roles[] = 'ROLE_USER';
+
+        return array_values(array_unique($roles));
+    }
+
+    /**
+     * Permite modificar los roles del usuario.
+     */
+    public function setRoles(array $roles): void
+    {
+        $this->roles = array_values(array_unique($roles));
+    }
+
+    /**
+     * Devuelve el hash de la contraseña.
+     */
+    public function getPassword(): ?string
+    {
+        return $this->password;
+    }
+
+    /**
+     * Guarda el hash de la contraseña.
+     */
+    public function setPassword(string $hash): void
+    {
+        $this->password = $hash;
     }
 }

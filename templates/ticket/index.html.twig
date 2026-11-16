@@ -1,42 +1,105 @@
-{#  Esta plantilla hereda de base.html.twig #}
+
 {% extends "base.html.twig" %}
 
-{# Sobreescribir el título #}
 {% block title %}{{ title }}{% endblock %}
 
-{# Inserto el cuerpo de la página de /tickets: el listado de todos los tickets #}
 {% block body %}
+
     <div class="page-header">
         <div>
             <p class="eyebrow">IssueFlow</p>
             <h1>{{ title }}</h1>
         </div>
-        <a href="{{ path('app_ticket_new') }}">Nueva incidencia</a>
+
+        {% if is_granted('ROLE_AGENT') %}
+            <a href="{{ path('app_ticket_new') }}">Nueva incidencia</a>
+        {% endif %}
+
+        <p class="counter">
+            {{ ticketPage.getTotalCount() }} incidencias
+        </p>
     </div>
 
-    {#
-        Mostramos un enlance a el último ticket visitado,
-        este código del ticket se recuperó de la sesión.
-    #}
+    <section class="filter-card">
+        <h2>Buscar incidencias</h2>
+
+        {{ form_start(filterForm, {
+            attr: { class: 'filter-form' }
+        }) }}
+
+            {{ form_row(filterForm.query) }}
+            {{ form_row(filterForm.priority) }}
+            {{ form_row(filterForm.status) }}
+            {{ form_row(filterForm.category) }}
+            {{ form_row(filterForm.assignee) }}
+
+            <div class="filter-actions">
+                {{ form_widget(filterForm.filter) }}
+
+                <a href="{{ path('app_ticket_index') }}"
+                   class="button button-outline">
+                    Limpiar filtros
+                </a>
+            </div>
+
+        {{ form_end(filterForm) }}
+    </section>
+
     {% if lastTicketCode %}
         <p class="session-note">
             Última incidencia consultada:
-            <a href="{{ path('app_ticket_show', { code: lastTicketCode }) }}">{{ lastTicketCode }}</a>
+            <a href="{{ path('app_ticket_show', { code: lastTicketCode }) }}">
+                {{ lastTicketCode }}
+            </a>
         </p>
     {% endif %}
-    
+
+    {# Listado de incidencias paginadas #}
     <div class="ticket-list">
-        {# Recorremos el array de tickets que el controlador suministró #}
-        {% for ticket in tickets %}
-            {#
-                Reutilizamos un fragmento de plantilla para cada tarjeta.
-                "only" limita el contexto del fragmento a la variable ticket,
-                evitando dependencias ocultas con otras variables de la vista.
-            #}
-            {% include 'ticket/_ticket_card.html.twig' with {'ticket': ticket} only %}
+        {% for ticket in ticketPage.getItems() %}
+            {% include 'ticket/_ticket_card.html.twig' with {
+                'ticket': ticket
+            } only %}
         {% else %}
-            {# Twig ejecuta este bloque si la colección está vacía (no hay tickets) #}
-            <p>No hay incidencias disponibles</p>
+            <p>No hay incidencias que coincidan con los filtros.</p>
         {% endfor %}
     </div>
+
+    {% if ticketPage.hasToPaginate() %}
+
+        {% set params = app.request.query.all %}
+
+        <nav class="pagination">
+
+            {% if ticketPage.hasPreviousPage() %}
+                <a
+                    class="button button-outline"
+                    href="{{ path('app_ticket_index', params|merge({
+                        page: ticketPage.getPageNumber() - 1
+                    })) }}"
+                >
+                    ← Anterior
+                </a>
+            {% endif %}
+
+            <span>
+                Página {{ ticketPage.getPageNumber() }}
+                de {{ ticketPage.getPageCount() }}
+            </span>
+
+            {% if ticketPage.hasNextPage() %}
+                <a
+                    class="button button-outline"
+                    href="{{ path('app_ticket_index', params|merge({
+                        page: ticketPage.getPageNumber() + 1
+                    })) }}"
+                >
+                    Siguiente →
+                </a>
+            {% endif %}
+
+        </nav>
+
+    {% endif %}
+
 {% endblock %}

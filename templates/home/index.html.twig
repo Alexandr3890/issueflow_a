@@ -1,25 +1,23 @@
-{#  Esta plantilla hereda de base.html.twig #}
 {% extends "base.html.twig" %}
 
-{#
-    Sobreescribimos el título de la página, usamos la variable projectName, esta
-    variable va a ser recibida desde el controlador, La insertamos entre llaves
-    dobles con su nombre
-#}
-{% block title %}{{ projectName }}{% endblock %}
+{% block title %}Inicio | {{ projectName }}{% endblock %}
 
-{# Inserto el cuerpo de la página de inicio #}
 {% block body %}
-    <section class="hero">
-        <p class="eyebrow">IFCT092PO - Proyecto del curso</p>
+    <div class="page-header">
+        <div>
+            <p class="eyebrow">{{ projectName }}</p>
+            <h1>Bienvenido a {{ projectName }}</h1>
+        </div>
+    </div>
 
-        {# projectName debe venir desde el controlador #}
-        <h1>{{ projectName }}</h1>
+    <section class="filter-card">
+        <h2>Panel principal</h2>
 
-        {# message debe venir desde el controlador #}
         <p>{{ message }}</p>
 
-        {# Enlace al listado de incidencias #}
-        <p><a href="{{ path('app_ticket_index') }}">Ver incidencias</a></p>
+        <a href="{{ path('app_ticket_index') }}"
+           class="button">
+            Consultar incidencias
+        </a>
     </section>
 {% endblock %}

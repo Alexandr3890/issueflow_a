@@ -6,15 +6,14 @@ namespace App\Service;
 
 use App\Contract\TicketCatalogInterface;
 use App\Entity\Ticket;
+use App\Form\Model\TicketSearchCriteria;
 use App\Model\TicketPriority;
 use App\Model\TicketStatus;
+use Doctrine\ORM\Tools\Pagination\Window;
+use Doctrine\ORM\Tools\Pagination\WindowPage;
 
-/* Catálogo temporal de incidencias en memoria 
-    Implementa la interfaz TicketCatalogInterface
-*/
 final class InMemoryTicketCatalog implements TicketCatalogInterface
 {
-    // Atributo que almacena el listado de las incidencias
     private array $tickets;
 
     public function __construct()
@@ -53,23 +52,87 @@ final class InMemoryTicketCatalog implements TicketCatalogInterface
         ];
     }
 
-    /* Método que devuelva el listado de todos los tickets */
     public function getTickets(): array
     {
         return $this->tickets;
     }
 
-    /* Metodo find que encuentra un ticket en el listado, dado su code 
-    ?Ticket quiere decir que el método puede devolver o un Ticket o null
-    */
     public function findByCode(string $code): ?Ticket
     {
-        /* array_find(), disponible en PHP 8.4+ devuelve el primer elemento
-        del array que cumple con la condición indicada por la función callback.
-        Si no encuentra ningún elemento que cumpla la condición devuelve null */
         return array_find(
             $this->tickets,
             fn (Ticket $ticket): bool => $ticket->getCode() === $code
+        );
+    }
+
+    public function search(
+        TicketSearchCriteria $criteria,
+        int $page,
+        int $pageSize
+    ): WindowPage {
+        $search = $criteria->query !== null
+            ? trim($criteria->query)
+            : '';
+
+        $filteredTickets = array_values(array_filter(
+            $this->tickets,
+            function (Ticket $ticket) use ($criteria, $search): bool {
+
+                if (
+                    $search !== ''
+                    && stripos($ticket->getCode(), $search) === false
+                    && stripos($ticket->getTitle(), $search) === false
+                ) {
+                    return false;
+                }
+
+                if (
+                    $criteria->priority !== null
+                    && $ticket->getPriority() !== $criteria->priority
+                ) {
+                    return false;
+                }
+
+                if (
+                    $criteria->status !== null
+                    && $ticket->getStatus() !== $criteria->status
+                ) {
+                    return false;
+                }
+
+                if (
+                    $criteria->category !== null
+                    && $ticket->getCategory() !== $criteria->category
+                ) {
+                    return false;
+                }
+
+                if (
+                    $criteria->assignee !== null
+                    && $ticket->getAssignee() !== $criteria->assignee
+                ) {
+                    return false;
+                }
+
+                return true;
+            }
+        ));
+
+        $page = max(1, $page);
+        $pageSize = max(1, $pageSize);
+
+        $window = Window::fromPageNumberAndSize($page, $pageSize);
+
+        $items = array_slice(
+            $filteredTickets,
+            $window->getFirstResult(),
+            $window->getMaxResults()
+        );
+
+        return new WindowPage(
+            $items,
+            count($filteredTickets),
+            $window
         );
     }
 }
